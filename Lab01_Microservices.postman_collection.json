@@ -1,0 +1,89 @@
+{
+  "info": {
+    "name": "Lab 01 - Microservices API Collection",
+    "description": "Collection kiểm thử REST API cho Lab 01 - Product Service (8081) và Order Service (8082)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Product Service (Port 8081)",
+      "item": [
+        {
+          "name": "GET All Products",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8081/api/products",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8081",
+              "path": ["api", "products"]
+            }
+          }
+        },
+        {
+          "name": "GET Product By ID (1)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8081/api/products/1",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8081",
+              "path": ["api", "products", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Order Service (Port 8082)",
+      "item": [
+        {
+          "name": "GET All Orders",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8082/api/orders",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8082",
+              "path": ["api", "orders"]
+            }
+          }
+        },
+        {
+          "name": "GET Product Via Order Service (Inter-service Communication)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8082/api/orders/product/1",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8082",
+              "path": ["api", "orders", "product", "1"]
+            }
+          }
+        },
+        {
+          "name": "GET Order with Product Details (Extension Exercise)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8082/api/orders/101",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8082",
+              "path": ["api", "orders", "101"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab 01 - Microservices Frontend</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f8f9fa; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .card { border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .card-header { font-weight: 600; border-top-left-radius: 12px !important; border-top-right-radius: 12px !important; }
+        .badge-port { font-size: 0.85rem; padding: 4px 8px; border-radius: 6px; }
+        pre { background-color: #212529; color: #f8f9fa; padding: 12px; border-radius: 8px; max-height: 250px; overflow-y: auto; }
+        .status-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; }
+        .status-online { background-color: #198754; }
+        .status-offline { background-color: #dc3545; }
+    </style>
+</head>
+<body>
+    <div class="container py-4">
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col-12 text-center">
+                <h1 class="display-6 fw-bold text-primary">Lab 01 – Spring Boot & Microservices</h1>
+                <p class="text-muted">Giao diện kiểm thử giao tiếp giữa Product Service (8081) và Order Service (8082)</p>
+                <div class="d-flex justify-content-center gap-3">
+                    <span id="productServiceBadge" class="badge bg-secondary p-2">
+                        <span class="status-dot status-offline" id="productStatusDot"></span>Product Service (8081): <span id="productStatusText">Chưa kiểm tra</span>
+                    </span>
+                    <span id="orderServiceBadge" class="badge bg-secondary p-2">
+                        <span class="status-dot status-offline" id="orderStatusDot"></span>Order Service (8082): <span id="orderStatusText">Chưa kiểm tra</span>
+                    </span>
+                    <button class="btn btn-sm btn-outline-primary" onclick="checkServicesHealth()">Kiểm tra kết nối</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Product Service (Port 8081) -->
+            <div class="col-lg-6">
+                <div class="card border-primary">
+                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                        <span>1. Product Service</span>
+                        <span class="badge bg-light text-primary badge-port">Port: 8081</span>
+                    </div>
+                    <div class="card-body">
+                        <h6 class="card-subtitle mb-3 text-muted">Endpoint: <code>/api/products</code></h6>
+                        <div class="d-flex gap-2 mb-3">
+                            <button class="btn btn-primary btn-sm" onclick="loadProducts()">Lấy danh sách sản phẩm (GET /api/products)</button>
+                        </div>
+
+                        <div class="input-group input-group-sm mb-3">
+                            <span class="input-group-text">ID sản phẩm:</span>
+                            <input type="number" id="productIdInput" class="form-control" value="1" min="1">
+                            <button class="btn btn-outline-primary" onclick="loadSingleProduct()">GET /api/products/{id}</button>
+                        </div>
+
+                        <h6>Kết quả JSON:</h6>
+                        <pre id="productJsonResult">// Bấm nút để gọi API...</pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Service (Port 8082) -->
+            <div class="col-lg-6">
+                <div class="card border-success">
+                    <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                        <span>2. Order Service</span>
+                        <span class="badge bg-light text-success badge-port">Port: 8082</span>
+                    </div>
+                    <div class="card-body">
+                        <h6 class="card-subtitle mb-3 text-muted">Endpoint: <code>/api/orders</code></h6>
+                        <div class="d-flex gap-2 mb-3">
+                            <button class="btn btn-success btn-sm" onclick="loadOrders()">Lấy danh sách đơn hàng (GET /api/orders)</button>
+                        </div>
+
+                        <h6>Kết quả JSON:</h6>
+                        <pre id="orderJsonResult">// Bấm nút để gọi API...</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Microservices Communication -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card border-warning">
+                    <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+                        <span>3. Giao tiếp giữa các Microservices (Order Service gọi Product Service qua RestClient)</span>
+                        <span class="badge bg-dark text-warning badge-port">Order (8082) ➔ Product (8081)</span>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted mb-3">
+                            Client gửi request tới <strong>Order Service (8082)</strong>, sau đó Order Service dùng <code>RestClient</code> để gọi <strong>Product Service (8081)</strong> lấy thông tin sản phẩm và trả về Client.
+                        </p>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <h6>Yêu cầu chính: Gọi Product thông qua Order Service</h6>
+                                <div class="input-group input-group-sm mb-2">
+                                    <span class="input-group-text">Product ID:</span>
+                                    <input type="number" id="intercomProductId" class="form-control" value="1" min="1">
+                                    <button class="btn btn-warning" onclick="testIntercomProduct()">GET /api/orders/product/{id}</button>
+                                </div>
+                                <small class="text-muted">URL gọi: <code>http://localhost:8082/api/orders/product/<span id="lblIntercomId">1</span></code></small>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <h6>Bài tập mở rộng: Đơn hàng kèm chi tiết Product & Tính tổng tiền</h6>
+                                <div class="input-group input-group-sm mb-2">
+                                    <span class="input-group-text">Order ID:</span>
+                                    <input type="number" id="detailOrderId" class="form-control" value="101" min="101" max="102">
+                                    <button class="btn btn-outline-dark" onclick="testOrderDetails()">GET /api/orders/{id}</button>
+                                </div>
+                                <small class="text-muted">URL gọi: <code>http://localhost:8082/api/orders/<span id="lblOrderId">101</span></code></small>
+                            </div>
+                        </div>
+
+                        <h6>Kết quả phản hồi từ Microservices:</h6>
+                        <pre id="intercomJsonResult">// Bấm một trong các nút trên để kiểm thử luồng giao tiếp...</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="text-center text-muted small mt-4">
+            Lab 01 – Khởi tạo và giao tiếp giữa các Microservices | Lập trình Web 3
+        </div>
+    </div>
+
+    <script>
+        const PRODUCT_API_BASE = 'http://localhost:8081';
+        const ORDER_API_BASE = 'http://localhost:8082';
+
+        // Cập nhật nhãn ID khi người dùng thay đổi input
+        document.getElementById('intercomProductId').addEventListener('input', function() {
+            document.getElementById('lblIntercomId').innerText = this.value;
+        });
+        document.getElementById('detailOrderId').addEventListener('input', function() {
+            document.getElementById('lblOrderId').innerText = this.value;
+        });
+
+        // 1. Kiểm tra trạng thái chạy của 2 Services
+        async function checkServicesHealth() {
+            try {
+                const res = await fetch(`${PRODUCT_API_BASE}/api/products`);
+                if (res.ok) {
+                    setOnline('productStatusDot', 'productStatusText', 'productServiceBadge', true);
+                } else {
+                    setOnline('productStatusDot', 'productStatusText', 'productServiceBadge', false);
+                }
+            } catch (e) {
+                setOnline('productStatusDot', 'productStatusText', 'productServiceBadge', false);
+            }
+
+            try {
+                const res = await fetch(`${ORDER_API_BASE}/api/orders`);
+                if (res.ok) {
+                    setOnline('orderStatusDot', 'orderStatusText', 'orderServiceBadge', true);
+                } else {
+                    setOnline('orderStatusDot', 'orderStatusText', 'orderServiceBadge', false);
+                }
+            } catch (e) {
+                setOnline('orderStatusDot', 'orderStatusText', 'orderServiceBadge', false);
+            }
+        }
+
+        function setOnline(dotId, textId, badgeId, isOnline) {
+            const dot = document.getElementById(dotId);
+            const text = document.getElementById(textId);
+            const badge = document.getElementById(badgeId);
+            if (isOnline) {
+                dot.className = 'status-dot status-online';
+                text.innerText = 'ONLINE';
+                badge.className = 'badge bg-success p-2';
+            } else {
+                dot.className = 'status-dot status-offline';
+                text.innerText = 'OFFLINE (Chưa chạy)';
+                badge.className = 'badge bg-danger p-2';
+            }
+        }
+
+        // 2. Product Service APIs
+        async function loadProducts() {
+            const resultBox = document.getElementById('productJsonResult');
+            resultBox.innerText = 'Đang tải...';
+            try {
+                const res = await fetch(`${PRODUCT_API_BASE}/api/products`);
+                const data = await res.json();
+                resultBox.innerText = JSON.stringify(data, null, 2);
+            } catch (err) {
+                resultBox.innerText = 'Lỗi kết nối tới Product Service (8081):\n' + err.message;
+            }
+        }
+
+        async function loadSingleProduct() {
+            const id = document.getElementById('productIdInput').value;
+            const resultBox = document.getElementById('productJsonResult');
+            resultBox.innerText = 'Đang tải...';
+            try {
+                const res = await fetch(`${PRODUCT_API_BASE}/api/products/${id}`);
+                const data = await res.json();
+                resultBox.innerText = JSON.stringify(data, null, 2);
+            } catch (err) {
+                resultBox.innerText = `Lỗi kết nối tới Product Service (8081) với id ${id}:\n` + err.message;
+            }
+        }
+
+        // 3. Order Service APIs
+        async function loadOrders() {
+            const resultBox = document.getElementById('orderJsonResult');
+            resultBox.innerText = 'Đang tải...';
+            try {
+                const res = await fetch(`${ORDER_API_BASE}/api/orders`);
+                const data = await res.json();
+                resultBox.innerText = JSON.stringify(data, null, 2);
+            } catch (err) {
+                resultBox.innerText = 'Lỗi kết nối tới Order Service (8082):\n' + err.message;
+            }
+        }
+
+        // 4. Inter-service Communication
+        async function testIntercomProduct() {
+            const id = document.getElementById('intercomProductId').value;
+            const resultBox = document.getElementById('intercomJsonResult');
+            resultBox.innerText = `Đang gọi Order Service (8082) -> Product Service (8081)...`;
+            try {
+                const res = await fetch(`${ORDER_API_BASE}/api/orders/product/${id}`);
+                const text = await res.text();
+                try {
+                    const parsed = JSON.parse(text);
+                    resultBox.innerText = JSON.stringify(parsed, null, 2);
+                } catch {
+                    resultBox.innerText = text;
+                }
+            } catch (err) {
+                resultBox.innerText = `Lỗi gọi API /api/orders/product/${id}:\n` + err.message;
+            }
+        }
+
+        async function testOrderDetails() {
+            const id = document.getElementById('detailOrderId').value;
+            const resultBox = document.getElementById('intercomJsonResult');
+            resultBox.innerText = `Đang gọi Order Service (8082) lấy đơn hàng kèm chi tiết Product...`;
+            try {
+                const res = await fetch(`${ORDER_API_BASE}/api/orders/${id}`);
+                const data = await res.json();
+                resultBox.innerText = JSON.stringify(data, null, 2);
+            } catch (err) {
+                resultBox.innerText = `Lỗi gọi API /api/orders/${id}:\n` + err.message;
+            }
+        }
+
+        // Tự động kiểm tra sức khỏe khi tải trang
+        window.onload = checkServicesHealth;
+    </script>
+</body>
+</html>
